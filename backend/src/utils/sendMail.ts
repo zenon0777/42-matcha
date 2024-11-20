@@ -9,7 +9,7 @@ interface SendEmailProps {
   link: string;
 }
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST as string,
   port: parseInt(process.env.EMAIL_PORT as string),
   secure: false,
@@ -20,7 +20,6 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendVerificationEmail(data: SendEmailProps) {
-  console.log("sending verification mail: ", data);
   try {
     const info = await transporter.sendMail({
       from: `"Matcha 👻" <${process.env.EMAIL_LOGIN}>`,
@@ -33,7 +32,6 @@ async function sendVerificationEmail(data: SendEmailProps) {
       </div>`,
     });
 
-    console.log("Message sent: %s", info);
     return { data: "Email sent successfully", error: null };
   } catch (error) {
     console.error("Error sending email: ", error);

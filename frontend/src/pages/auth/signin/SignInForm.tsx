@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { loginSchema } from "../../../utils/zod/loginSchema";
-import { Link, useNavigate } from "react-router-dom";
+import { Divider } from "@mui/material";
 import axios from "axios";
+import { useEffect, useState } from "react";
 import { ImSpinner3 } from "react-icons/im";
+import { IoLogoFacebook } from "react-icons/io";
+import { Link, useNavigate } from "react-router-dom";
+import { loginSchema } from "../../../utils/zod/loginSchema";
 
 export default function SignInForm() {
   const [data, setData] = useState({
@@ -35,22 +37,31 @@ export default function SignInForm() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:3000/api/auth/login",
+        `${import.meta.env.VITE_APP_API_URL}/auth/login`,
         data
       );
-      console.log("login res: ", response);
+      //"login res: ", response);
       window.localStorage.setItem("token", response.data.token);
       const isProfileCompleted = response.data.isProfileCompleted;
       setRedirecting(true);
-      navigate(`/${!isProfileCompleted ? "?profilecompleted=false" : ""}`)
+      navigate(`/${!isProfileCompleted ? "?profilecompleted=false" : ""}`);
+      navigate(`/${!isProfileCompleted ? "?profilecompleted=false" : ""}`);
       // setTimeout(() => {
       // }, 1000);
     } catch (error: any) {
       setSignInError(error.message);
-      console.log(error.message);
+      //error.message);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("token");
+    if (token) {
+      window.localStorage.setItem("token", token);
+      window.location.href = "/";
+    }
+  }, []);
 
   return (
     <div className="w-full mx-auto relative">
@@ -99,6 +110,13 @@ export default function SignInForm() {
             onChange={handleChange}
           />
           <p className="text-red-500 text-xs italic">{error.password}</p>
+
+          <Link
+            className="text-blue-400 text-xs italic text-end justify-self-end"
+            to="/resetPassword"
+          >
+            Forget password ?{" "}
+          </Link>
         </div>
         <div className="flex items-center justify-between">
           <button
@@ -117,6 +135,41 @@ export default function SignInForm() {
             Sign Up
           </Link>
         </p>
+      </div>
+      {/* Instagram and facebook  */}
+      <div className="flex-col items-center justify-center gap-4 mt-6">
+        <div className="flex items-center text-center justify-center gap-4 w-full">
+          <Divider
+            sx={{
+              height: 0.5,
+              width: "35%",
+              bgcolor: "black",
+            }}
+          />
+          <div className="text-gray-500 text-sm text-center">
+            Or Sign In with
+          </div>
+          <Divider
+            sx={{
+              height: 0.5,
+              width: "35%",
+              bgcolor: "black",
+            }}
+          />
+        </div>
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => {
+              window.location.href = `${import.meta.env.VITE_APP_API_URL}/auth/facebook`;
+            }}
+            className="w-12 h-12 rounded-full flex items-center justify-center "
+          >
+            <IoLogoFacebook className="w-12 h-12" />
+          </button>
+          {/* <button className="w-12 h-12 rounded-full flex items-center justify-center">
+            <IoLogoInstagram onClick={handSignInInsta} className="w-12 h-12" />
+          </button> */}
+        </div>
       </div>
     </div>
   );

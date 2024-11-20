@@ -13,35 +13,72 @@ import { IoIosNotifications } from "react-icons/io";
 import { RiMessage2Line } from "react-icons/ri";
 import { MdOutlineHeartBroken } from "react-icons/md";
 import { FaRegEye } from "react-icons/fa";
-
 import { SocketContext } from "../../contexts/SocketContext";
 import Badge from "../badge/badge";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
-const inotifications = [
-  {
-    id: 1,
-    content:
-      "New content from userNew content from userNew content from userNew content from user",
-    type: "view",
-    url: "/",
-  },
-  { id: 2, content: "New content from user", type: "message", url: "/" },
-  { id: 3, content: "New content from user", type: "like", url: "/" },
-  { id: 4, content: "New content from user", type: "unlike", url: "/" },
-  { id: 5, content: "New content from user", type: "message", url: "/" },
-  { id: 3, content: "New content from user", type: "like", url: "/" },
-  { id: 4, content: "New content from user", type: "unlike", url: "/" },
-  { id: 5, content: "New content from user", type: "message", url: "/" },
-  { id: 3, content: "New content from user", type: "like", url: "/" },
-  { id: 4, content: "New content from user", type: "unlike", url: "/" },
-  { id: 5, content: "New content from user", type: "message", url: "/" },
-];
+interface Notification {
+  id: number;
+  content: string;
+  type: string;
+  url: string;
+}
+
+const getUrl = (type: string, data: any) => {
+  if (type === "message") {
+    return "/chat";
+  } else if (type === "like" || type === "unlike") {
+    return "/profile/likes";
+  } else if (type === "view") {
+    return "/profile/views";
+  } else if (type === "date") {
+    return `/connections/schedule_date/${data}`;
+  } else {
+    return "/";
+  }
+};
+
+const getNotificationIcon = async (token: string) => {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_APP_API_URL}/profile/notifications`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getting notifications:", error);
+    return [];
+  }
+};
 
 const Notifications: React.FC = () => {
   const [unread, setUnread] = useState(0);
-  const [notifications, setNotifications] = useState(inotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const socket = useContext(SocketContext);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      getNotificationIcon(token).then((data) => {
+        setNotifications(
+          data.map((notification: any) => ({
+            id: notification.id,
+            content:
+              notification.content.lenght > 30
+                ? notification.content.slice(0, 50)
+                : notification.content,
+            type: notification.type,
+            url: getUrl(notification.type, notification.data),
+          }))
+        );
+      });
+    }
+  }, []);
 
   const resetCounter = () => {
     setUnread(0);
@@ -50,7 +87,7 @@ const Notifications: React.FC = () => {
   useEffect(() => {
     if (socket) {
       socket.on("notification", (data) => {
-        console.log("notification", data);
+        //"notification", data);
         setNotifications((prev) => [
           {
             id: prev.length + 1,
@@ -59,14 +96,7 @@ const Notifications: React.FC = () => {
                 ? data.content.slice(0, 50)
                 : data.content,
             type: data.type,
-            url:
-              data.type == "message"
-                ? "/chat"
-                : data.type == "like" || data.type === "unlike"
-                ? "/profile/likes"
-                : data.type === "view"
-                ? "/profile/views"
-                : "/",
+            url: getUrl(data.type, data.data),
           },
           ...prev,
         ]);
@@ -87,37 +117,43 @@ const Notifications: React.FC = () => {
           </div>
         </Badge>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="max-w-[300px] max-h-[500px] overflow-y-auto md:max-w-[500px]">
+      <DropdownMenuContent className="min-w-[180px] max-w-[300px] max-h-[500px] overflow-y-auto md:max-w-[500px]">
         <DropdownMenuLabel>
           <h3>Notifications: </h3>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {notifications.map((notification) => (
-          <DropdownMenuItem key={notification.id}>
-            <Link to={notification.url} className="w-full">
-              <div className="flex gap-2 px-2 py-2 w-full rounded-md items-center bg-red-200">
-                <div className="">
-                  {notification.type === "message" ? (
-                    <RiMessage2Line className="text-lg" />
-                  ) : notification.type === "like" ? (
-                    <FaRegHeart className="text-lg" />
-                  ) : notification.type === "unlike" ? (
-                    <MdOutlineHeartBroken className="text-lg" />
-                  ) : notification.type === "view" ? (
-                    <FaRegEye className="text-lg" />
-                  ) : (
-                    <IoIosNotifications className="text-lg" />
-                  )}
+        {notifications.length ? (
+          notifications.map((notification) => (
+            <DropdownMenuItem key={notification.id}>
+              <Link to={notification.url} className="w-full">
+                <div className="flex gap-2 px-2 py-2 w-full rounded-md items-center bg-red-200">
+                  <div className="">
+                    {notification.type === "message" ? (
+                      <RiMessage2Line className="text-lg" />
+                    ) : notification.type === "like" ? (
+                      <FaRegHeart className="text-lg" />
+                    ) : notification.type === "unlike" ? (
+                      <MdOutlineHeartBroken className="text-lg" />
+                    ) : notification.type === "view" ? (
+                      <FaRegEye className="text-lg" />
+                    ) : (
+                      <IoIosNotifications className="text-lg" />
+                    )}
+                  </div>
+                  <p className="text-wrap">
+                    {notification.content.length > 50
+                      ? notification.content.slice(0, 50) + "..."
+                      : notification.content}
+                  </p>
                 </div>
-                <p className="text-wrap">
-                  {notification.content.length > 50
-                    ? notification.content.slice(0, 50) + "..."
-                    : notification.content}
-                </p>
-              </div>
-            </Link>
+              </Link>
+            </DropdownMenuItem>
+          ))
+        ) : (
+          <DropdownMenuItem>
+            <p>No notifications</p>
           </DropdownMenuItem>
-        ))}
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

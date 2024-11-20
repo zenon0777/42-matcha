@@ -1,4 +1,3 @@
-// src/middleware/authMiddleware.ts
 import { NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -16,7 +15,7 @@ function verifyToken(req: any, res: any, next: NextFunction) {
         req.user = decoded;
         next();
       } catch (error) {
-        console.error("Error verifying token:", error);
+        console.error("Error verifying token!");
         res.status(401).json({ error: "Invalid token" });
       }
     } else {
@@ -53,9 +52,8 @@ function socketMiddlware(req: any, res: any, next: NextFunction) {
       throw new Error("Access denied");
     }
   } catch (error) {
-    console.error("Error verifying token:", error);
+    console.error("Error verifying token!");
     const err = new Error("Error verifying token!");
-    // err.data = { content: "Please retry later" }; // additional details
     next(err);
   }
 }

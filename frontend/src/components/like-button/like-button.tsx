@@ -6,11 +6,18 @@ import { toast } from "react-toastify";
 
 export default function LikeDislikeButton({
   profileId,
+  handleSwipe = () => {},
+  disabled = false,
+  style = {},
 }: {
   profileId: string;
+  disabled?: boolean;
+  handleSwipe?: (direction: string) => void;
+  style?: React.CSSProperties;
 }) {
   const token = window.localStorage.getItem("token");
   const [isLiked, setIsLiked] = useState(false);
+
   const handleLikeDislike = async () => {
     try {
       const res = await axios.post(
@@ -26,6 +33,7 @@ export default function LikeDislikeButton({
       );
       setIsLiked(!isLiked);
       toast.success(res.data);
+      handleSwipe("like");
     } catch (error: any) {
       console.error("Error liking profile:", error);
       toast.error("Failed to like profile");
@@ -49,14 +57,16 @@ export default function LikeDislikeButton({
         setIsLiked(response.data);
       })
       .catch((error) => {
-        console.log("Error getting likes:", error);
+        console.error("Error getting likes:", error);
       });
-  }, []);
+  }, [profileId]);
 
   return (
     <button
+      disabled={disabled}
       onClick={handleLikeDislike}
-      className="text-red-400 hover:scale-105"
+      className="text-red-400 rounded-full p-4 transition-transform transform hover:scale-105 shadow-lg "
+      style={style}
     >
       {isLiked ? (
         <RiDislikeLine className="w-8 h-8" />

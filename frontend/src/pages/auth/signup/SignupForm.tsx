@@ -40,13 +40,13 @@ export default function SingUpForm({
     }
     try {
       setStatus("loading");
-      const response = await axios.post(
-        "http://localhost:3000/api/auth/signup",
+      await axios.post(
+        `${import.meta.env.VITE_APP_API_URL}/auth/signup`,
         data
       );
       setStatus("success");
       // window.localStorage.setItem("token", response.data.token);
-      console.log(response);
+      //response);
     } catch (error: any) {
       setStatus("failed");
       setSignUpError(error.response.data.error);
@@ -66,6 +66,7 @@ export default function SingUpForm({
           className="border-2 rounded w-full py-1 px-3 text-gray-600 border-gray-500 placeholder-gray-300"
           id="email"
           type="email"
+          name="email"
           required={false}
           placeholder="Email"
           onChange={handleChange}
@@ -86,6 +87,7 @@ export default function SingUpForm({
         <input
           className="border-2 rounded w-full py-1 px-3 text-gray-600 border-gray-500 placeholder-gray-300"
           id="username"
+          name="username"
           type="text"
           placeholder="Username"
           onChange={handleChange}
@@ -107,6 +109,7 @@ export default function SingUpForm({
           <input
             className="border-2 rounded w-full py-1 px-3 text-gray-600 border-gray-500 placeholder-gray-300"
             id="first_name"
+            name="first_name"
             type="text"
             placeholder="First Name"
             onChange={handleChange}
@@ -127,6 +130,7 @@ export default function SingUpForm({
           <input
             className="border-2 rounded w-full py-1 px-3 text-gray-600 border-gray-500 placeholder-gray-300"
             id="last_name"
+            name="last_name"
             type="text"
             placeholder="Last Name"
             onChange={handleChange}

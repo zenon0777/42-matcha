@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export interface UserProfile {
-  age: number | null;
+  age: number;
   bio: string;
   created_at: string;
   email: string;
@@ -22,7 +22,7 @@ export interface UserProfile {
 
 const handleViewProfile = async (profileId: string, token: string | null) => {
   try {
-    const res = await axios.post(
+    await axios.post(
       `${import.meta.env.VITE_APP_API_URL}/profile/views/view-profile`,
       {
         profileId: profileId,
@@ -33,15 +33,15 @@ const handleViewProfile = async (profileId: string, token: string | null) => {
         },
       }
     );
-    console.log(res.data);
   } catch (error: any) {
-    console.error("Error viewing profile:", error);
+    console.error("Error viewing profile:", error.message);
+    throw error;
   }
 };
 
 const getProfileData = async (profileId: string): Promise<UserProfile> => {
   const token = localStorage.getItem("token");
-  const response = await axios.get("http://localhost:3000/api/profile", {
+  const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/profile`, {
     params: {
       profileId,
     },
